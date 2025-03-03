@@ -10,6 +10,8 @@ import {Produto} from './model/produto';
 })
 export class AppComponent {
 
+  produtos : Produto[] = [];
+
   produtoForm = this.fb.group({
     id:[],
     nome:[null, Validators.required],
@@ -21,7 +23,17 @@ export class AppComponent {
     private fb:FormBuilder,
     private produtoService: ProdutoService
   ){
+    this.buscarProdutos();
+  }
 
+  buscarProdutos(){
+     this.produtoService.buscarTodos().subscribe({
+      next:(res) => {
+        this.produtos = res;
+      }, error:(error)=>{
+        console.log(error);
+      }
+     })
   }
 
   criarProduto():Produto{
@@ -40,6 +52,8 @@ export class AppComponent {
     this.produtoService.salvar(produto).subscribe(
         {
           next:(res) =>{
+            this.produtoForm.reset();
+            this.buscarProdutos();
             alert("Produto salvo com sucesso")
           },
           error: (error) => {
@@ -47,6 +61,23 @@ export class AppComponent {
           }
         }
     )
+  }
+
+  remover(produto: Produto){
+    const confirmacao = confirm("Quer realmente excluir esse produto? " + produto.nome);
+    if(confirmacao){
+      const id = produto.id;
+      this.produtoService.remover(id).subscribe({
+        next: (res) => {
+          alert("Produto removido com sucesso!");
+          this.buscarProdutos();
+
+        },
+        error:(error)=>{
+          console.log(error);
+        }
+      })
+    }
   }
 
 }
